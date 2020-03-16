@@ -3,6 +3,7 @@ import requests
 import mimetypes
 from pathlib import Path
 import settings
+from tqdm import tqdm
 
 
 # import checker
@@ -45,15 +46,15 @@ for item in POOLS_ID:
 
     # We get a list of all the answers from the i-th pool that are waiting for verification
     url_assignments = (
-            settings.URL_API + "assignments/?status=SUBMITTED&limit=100&pool_id=%s" % pool_id  # limit=100 for test
+            settings.URL_API + "assignments/?status=SUBMITTED&limit=200&pool_id=%s" % pool_id  # limit=100 for test
     )
     submitted_tasks = requests.get(url_assignments, headers=HEADERS).json()["items"]
 
-    for task in submitted_tasks:
+    for task in tqdm(submitted_tasks):
         try:
             url_file = (
-                    settings.URL_API + "attachments/%s" % task['solutions'][0]['output_values']['video']  # main
-                #    settings.URL_API + "attachments/%s" % task['solutions'][0]['output_values']['photo']  # sandbox
+                #    settings.URL_API + "attachments/%s" % task['solutions'][0]['output_values']['video']  # main
+                    settings.URL_API + "attachments/%s" % task['solutions'][0]['output_values']['photo']  # sandbox
             )
         except:
             continue
@@ -66,7 +67,8 @@ for item in POOLS_ID:
         video = int(info_file['media_type'].split('/')[0] == "video")
         if info_file['media_type'].split('/')[0] == "application":
             extention = Path(file_name)
-            extention.suffix.lower()
+            extention = extention.suffix.lower()
+            # print(extention)
             if extention in settings.types:
                 video = 1
 
@@ -88,6 +90,9 @@ for item in POOLS_ID:
         #    }
         #    requests.patch(URL_API + "assignments/%s" % task['id'], headers=HEADERS, json=json_check)
 
+        # with open('test.tsv', 'a') as fout:
+        #     fout.write('')
+
         db.append(
             {
                 "pool_id": task['pool_id'],
@@ -96,8 +101,8 @@ for item in POOLS_ID:
                 "mustache": task['solutions'][0]['output_values']['mustache'],
                 "glasses": task['solutions'][0]['output_values']['glasses'],
                 "age": task['solutions'][0]['output_values']['age'],
-                # "photo": task['solutions'][0]['output_values']['photo'],  # sandbox
-                "video": task['solutions'][0]['output_values']['video'],
+                "photo": task['solutions'][0]['output_values']['photo'],  # sandbox
+                # "video": task['solutions'][0]['output_values']['video'],
                 "gender": gender,
                 "file_name": file_name,
                 "media_type": info_file["media_type"],
