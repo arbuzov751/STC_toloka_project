@@ -1,17 +1,17 @@
 # This is settings file!
 
-path_to_save_video = r'C:\STC_toloka_project'
+path_to_save_video = r'C:\STC_toloka_project\download'
 
 
 # Specify the key to the API, as well as the pool ID of the first and second jobs
 
 # Main work TOLOKA
-TOLOKA_OAUTH_TOKEN = "AgAAAAA5OljPAACtpYsQUstOSEWDs_k09mbI1M4"
-URL_API = "https://toloka.yandex.ru/api/v1/"
+# TOLOKA_OAUTH_TOKEN = "AgAAAAA5OljPAACtpYsQUstOSEWDs_k09mbI1M4"
+# URL_API = "https://toloka.yandex.ru/api/v1/"
 
 # SANDBOX
-#TOLOKA_OAUTH_TOKEN = "AgAAAAA8qXcxAAIbujGo7DDpoko2ty3hwvHze6Q"
-#URL_API = "https://sandbox.toloka.yandex.ru/api/v1/"
+TOLOKA_OAUTH_TOKEN = "AgAAAAA8qXcxAAIbujGo7DDpoko2ty3hwvHze6Q"
+URL_API = "https://sandbox.toloka.yandex.ru/api/v1/"
 
 
 types = [".3g2", ".3gp", ".3gp2", ".3gpp", ".3gpp2",
@@ -22,4 +22,4 @@ types = [".3g2", ".3gp", ".3gp2", ".3gpp", ".3gpp2",
          ".swf", ".ts", ".vcd", ".vid", ".vob", ".webm",
          ".wm", ".wmv", ".yuv"]  # types all popular video files
 
-pool_id = 11476441  # -1 - поиск по всем открытым пулам
+pool_id = 330748  # -1 - поиск по всем открытым пулам
