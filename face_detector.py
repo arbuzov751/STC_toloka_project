@@ -9,12 +9,12 @@ def videoStreamer(path, skip=None):
     FPS = stream.get(cv2.CAP_PROP_FPS)
     print(f"frames = {frames}, FPS = {FPS}")
     if skip == None:
-        skip = int(FPS)
+        skip = int(FPS/2)
 
     count = 0
     while True:
         # Пропускаем несколько кадров, и смотрим один из них.
-        for i in tqdm(range(skip)/2):
+        for i in tqdm(range(skip)):
             stream.grab()
         (grabbed, frame) = stream.read()
 
