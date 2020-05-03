@@ -9,6 +9,10 @@ from tqdm import tqdm
 
 # import checker
 
+# сделать уникальное имя для файла (через task_id)
+# проверить, чтоб файлы повторно не скачивались
+# если скачивание прерывается, повторить выполнение скрипта (на потом)
+# отклонить дубли
 
 def get_media_type(filename):
     mime_start = mimetypes.guess_type(filename)[0]
@@ -65,14 +69,16 @@ for item in POOLS_ID:
         info_file = requests.get(url_file, headers=HEADERS).json()
 
         file_name = info_file['name']
+        extention = Path(file_name)
+        extention = extention.suffix.lower()
 
         # checking file on video using shredding
         video = int(info_file['media_type'].split('/')[0] == "video")
         if info_file['media_type'].split('/')[0] == "application":
-            extention = Path(file_name)
-            extention = extention.suffix.lower()
             if extention in settings.types:
                 video = 1
+
+        file_name = task['id'] + extention
 
         if task['solutions'][0]['output_values']['gender'] == "муж.":
             gender = "male"
@@ -82,22 +88,23 @@ for item in POOLS_ID:
         local_path = ""
         if video == 1:
             local_path = settings.path_to_save_video
-            if file_name not in all_files:
+            if local_path + "\\" + file_name not in all_files:
                 # pass
                 file_download = requests.get(url_file + "/download", headers=HEADERS)  # download file with get request
                 # open method to open a file on your system and write the contents
                 with open((settings.path_to_save_video + r'\%s' % file_name), "wb") as file:
                     file.write(file_download.content)
-        # else:
-        #    json_check = {
-        #        "status": "REJECTED",
-        #        "public_comment": "Загруженный файл не является видео!",
-        #    }
-        #    requests.patch(URL_API + "assignments/%s" % task['id'], headers=HEADERS, json=json_check)
+        elif task['status'] == "SUBMITTED":
+            json_check = {
+                "status": "REJECTED",
+                "public_comment": "Загруженный файл не является видео!",
+            }
+            requests.patch(settings.URL_API + "assignments/%s" % task['id'], headers=HEADERS, json=json_check)
 
         db.append(
             {
                 "pool_id": task['pool_id'],
+                "task_id": task['id'],
                 "user_id": task['user_id'],
                 "beard": task['solutions'][0]['output_values']['beard'],
                 "mustache": task['solutions'][0]['output_values']['mustache'],
