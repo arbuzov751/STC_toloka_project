@@ -44,6 +44,8 @@ db = db.sort_values('md5_hash')
 
 md5_hash = db['md5_hash'].tolist()
 task_id = db['task_id'].tolist()
+file_name = db['file_name'].tolist()
+local_path = db['local_path'].tolist()
 
 for item in md5_hash:
     if item != "This file does not exist in this way!":
@@ -64,6 +66,10 @@ for i in range(len(md5_hash)):
             "public_comment": "Данное видео загружено повторно! Это нарушает правила выполнения задания!",
         }
         requests.patch(settings.URL_API + "assignments/%s" % task_id[i], headers=HEADERS, json=json_check)
+        try:
+            os.remove(local_path[i] + "\\" + file_name[i])
+        except:
+            pass
         continue
     reject.append(0)
 
