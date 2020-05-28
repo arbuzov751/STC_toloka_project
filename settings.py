@@ -2,7 +2,6 @@
 
 path_to_save_video = r'D:\STC_toloka_project\download'
 
-
 # Specify the key to the API, as well as the pool ID of the first and second jobs
 
 # Main work TOLOKA
@@ -13,6 +12,10 @@ path_to_save_video = r'D:\STC_toloka_project\download'
 TOLOKA_OAUTH_TOKEN = "AgAAAAA8qXcxAAIbujGo7DDpoko2ty3hwvHze6Q"
 URL_API = "https://sandbox.toloka.yandex.ru/api/v1/"
 
+HEADERS = {
+    "Authorization": "OAuth %s" % TOLOKA_OAUTH_TOKEN,
+    "Content-Type": "application/JSON",
+}
 
 types = [".3g2", ".3gp", ".3gp2", ".3gpp", ".3gpp2",
          ".asf", ".asx", ".avi", ".bin", ".dat", ".drv",

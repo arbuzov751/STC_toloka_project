@@ -4,6 +4,7 @@ import mimetypes
 from pathlib import Path
 import settings
 import glob
+from antirepeater import antireplay
 from tqdm import tqdm
 
 
@@ -19,11 +20,6 @@ def get_media_type(filename):
     return mime_start.split('/')[0]
 
 
-HEADERS = {
-    "Authorization": "OAuth %s" % settings.TOLOKA_OAUTH_TOKEN,
-    "Content-Type": "application/JSON",
-}
-
 # Get the list of pools in the current project.
 
 POOLS_ID = []
@@ -34,12 +30,12 @@ if settings.pool_id == -1:
     url_pools = (
             settings.URL_API + "pools?status=OPEN"
     )
-    POOLS_ID = requests.get(url_pools, headers=HEADERS).json()["items"]
+    POOLS_ID = requests.get(url_pools, headers=settings.HEADERS).json()["items"]
 else:
     url_pools = (
             settings.URL_API + f"pools/{settings.pool_id}"
     )
-    POOL_ID = requests.get(url_pools, headers=HEADERS).json()
+    POOL_ID = requests.get(url_pools, headers=settings.HEADERS).json()
     POOLS_ID.append(POOL_ID)  # necessary for the correct operation of the cycle with 1 pool
 
 k = 1  # for the convenience of counting the number of pools
@@ -55,7 +51,7 @@ for item in POOLS_ID:
     url_assignments = (
             settings.URL_API + "assignments/?limit=200&pool_id=%s" % pool_id  # limit=100 for test
     )
-    submitted_tasks = requests.get(url_assignments, headers=HEADERS).json()["items"]
+    submitted_tasks = requests.get(url_assignments, headers=settings.HEADERS).json()["items"]
 
     for task in tqdm(submitted_tasks):
         try:
@@ -66,7 +62,7 @@ for item in POOLS_ID:
         except:
             continue
 
-        info_file = requests.get(url_file, headers=HEADERS).json()
+        info_file = requests.get(url_file, headers=settings.HEADERS).json()
 
         file_name = info_file['name']
         extention = Path(file_name)
@@ -90,7 +86,7 @@ for item in POOLS_ID:
             local_path = settings.path_to_save_video
             if local_path + "\\" + file_name not in all_files:
                 # pass
-                file_download = requests.get(url_file + "/download", headers=HEADERS)  # download file with get request
+                file_download = requests.get(url_file + "/download", headers=settings.HEADERS)  # download file with get request
                 # open method to open a file on your system and write the contents
                 with open((settings.path_to_save_video + r'\%s' % file_name), "wb") as file:
                     file.write(file_download.content)
@@ -99,7 +95,7 @@ for item in POOLS_ID:
                 "status": "REJECTED",
                 "public_comment": "Загруженный файл не является видео!",
             }
-            requests.patch(settings.URL_API + "assignments/%s" % task['id'], headers=HEADERS, json=json_check)
+            requests.patch(settings.URL_API + "assignments/%s" % task['id'], headers=settings.HEADERS, json=json_check)
 
         db.append(
             {
@@ -121,3 +117,5 @@ for item in POOLS_ID:
         )
     if db:
         pd.DataFrame(db).to_csv(f"pool_{pool_id}.tsv", index=False, sep="\t", encoding='utf-8')
+
+antireplay()
