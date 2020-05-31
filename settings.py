@@ -1,6 +1,6 @@
 # This is settings file!
 
-path_to_save_video = r'D:\STC_toloka_project\download'
+path_to_save_video = r'/media/hdd/arbuzov_data'
 
 # Specify the key to the API, as well as the pool ID of the first and second jobs
 

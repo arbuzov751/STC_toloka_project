@@ -51,16 +51,19 @@ if __name__ == "__main__":
 
         # replace file
         if process(file):
+            comment = ''
             path_to_file = path_good + "\\"
             os.replace(args.path_to_video_files+"\\"+file_name, path_to_file + file_name)
         else:
-           path_to_file = path_bad+"\\"
-           os.replace(args.path_to_video_files+"\\"+file_name, path_to_file + file_name)
+            comment = process(file)
+            path_to_file = path_bad+"\\"
+            os.replace(args.path_to_video_files+"\\"+file_name, path_to_file + file_name)
 
         db.append(
             {
                 "filename": file_name,
                 "path to file": path_to_file,
+                "comment": comment,
             }
         )
 
