@@ -8,6 +8,9 @@ import sys
 import glob
 import pandas as pd
 
+sys.path.insert(1, '/home/arbuzov_misha/STC_toloka_project')
+
+import settings
 
 def process(video_file):
     file = open(video_file, 'rb')
@@ -24,10 +27,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Get all files from directory
-    all_files = glob.glob(f"{args.path_to_video_files}\*.*")
+    all_files = glob.glob(f"{args.path_to_video_files}/*.*")
 
     # Make directory for good videos
-    path_good = args.path_to_video_files+"\\good_videos"
+    path_good = args.path_to_video_files+"/good_videos"
     try:
         os.mkdir(path_good)
     except OSError:
@@ -36,7 +39,7 @@ if __name__ == "__main__":
         print(f"Успешно создана директория {path_good}")
 
     # Make directory for bad videos
-    path_bad = args.path_to_video_files+"\\bad_videos"
+    path_bad = args.path_to_video_files+"/bad_videos"
     try:
         os.mkdir(path_bad)
     except OSError:
@@ -47,18 +50,26 @@ if __name__ == "__main__":
     db = []
 
     for file in all_files:
-        file_name = file.split('\\')[-1]
+        file_name = file.split('/')[-1]
 
         # replace file
-        if process(file):
-            comment = ''
-            path_to_file = path_good + "\\"
-            os.replace(args.path_to_video_files+"\\"+file_name, path_to_file + file_name)
+        comment = process(file)
+        if comment == '':
+            path_to_file = path_good + "/"
+            os.replace(args.path_to_video_files+"/"+file_name, path_to_file + file_name)
+            json_check = {
+                "status": "ACCEPTED",
+                "public_comment": "Все прекрасно! Спасибо за вашу работу!",
+            }
+            requests.patch(settings.URL_API + "assignments/%s" % file_name, headers=settings.HEADERS, json=json_check)
         else:
-            comment = process(file)
-            path_to_file = path_bad+"\\"
-            os.replace(args.path_to_video_files+"\\"+file_name, path_to_file + file_name)
-
+            path_to_file = path_bad+"/"
+            os.replace(args.path_to_video_files+"/"+file_name, path_to_file + file_name)
+            json_check = {
+                "status": "REJECTED",
+                "public_comment": "На видео отсутствует лицо! Либо оно перекрыто чем-то или пропадает!",
+            }
+            requests.patch(settings.URL_API + "assignments/%s" % file_name, headers=settings.HEADERS, json=json_check)
         db.append(
             {
                 "filename": file_name,
@@ -68,4 +79,4 @@ if __name__ == "__main__":
         )
 
     if db:
-        pd.DataFrame(db).to_csv(f"{args.path_to_video_files}\\result.tsv", index=False, sep="\t", encoding='utf-8')
+        pd.DataFrame(db).to_csv(f"{args.path_to_video_files}/result.tsv", index=False, sep="\t", encoding='utf-8')
