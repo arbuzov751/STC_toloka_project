@@ -4,16 +4,10 @@ import mimetypes
 from pathlib import Path
 import settings
 import glob
+import os
 from antirepeater import antireplay
 from tqdm import tqdm
 
-
-# import checker
-
-# сделать уникальное имя для файла (через task_id)
-# проверить, чтоб файлы повторно не скачивались
-# если скачивание прерывается, повторить выполнение скрипта (на потом)
-# отклонить дубли
 
 def get_media_type(filename):
     mime_start = mimetypes.guess_type(filename)[0]
@@ -24,7 +18,7 @@ def get_media_type(filename):
 
 POOLS_ID = []
 
-all_files = glob.glob(f"{settings.path_to_save_video}\*.*")
+all_files = glob.glob(f"{settings.path_to_save_video}/*.*")
 
 if settings.pool_id == -1:
     url_pools = (
@@ -38,26 +32,29 @@ else:
     POOL_ID = requests.get(url_pools, headers=settings.HEADERS).json()
     POOLS_ID.append(POOL_ID)  # necessary for the correct operation of the cycle with 1 pool
 
-k = 1  # for the convenience of counting the number of pools
+if POOLS_ID:
+    if not os.path.exists(settings.path_to_save_video):
+        os.makedirs(settings.path_to_save_video)
 
 for item in POOLS_ID:
-    db = []
     pool_id = item['id']
 
-    print(f"{pool_id} {k}")
-    k += 1
+    print(f"{pool_id}")
 
     # We get a list of all the answers from the i-th pool that are waiting for verification
     url_assignments = (
-            settings.URL_API + "assignments/?limit=200&pool_id=%s" % pool_id  # limit=100 for test
+            settings.URL_API + "assignments/?status=SUBMITTED&limit=5000&pool_id=%s" % pool_id
     )
     submitted_tasks = requests.get(url_assignments, headers=settings.HEADERS).json()["items"]
 
+    db = []
+
     for task in tqdm(submitted_tasks):
+
         try:
             url_file = (
-                #    settings.URL_API + "attachments/%s" % task['solutions'][0]['output_values']['video']  # main
-                    settings.URL_API + "attachments/%s" % task['solutions'][0]['output_values']['photo']  # sandbox
+                    settings.URL_API + "attachments/%s" % task['solutions'][0]['output_values']['video']  # main
+                #    settings.URL_API + "attachments/%s" % task['solutions'][0]['output_values']['photo']  # sandbox
             )
         except:
             continue
@@ -84,11 +81,12 @@ for item in POOLS_ID:
         local_path = ""
         if video == 1:
             local_path = settings.path_to_save_video
-            if local_path + "\\" + file_name not in all_files:
+            if (local_path + "/" + file_name not in all_files) and (local_path + "/good_videos/" + file_name not in all_files) \
+                    and (local_path + "/bad_videos/" + file_name not in all_files):
                 # pass
                 file_download = requests.get(url_file + "/download", headers=settings.HEADERS)  # download file with get request
                 # open method to open a file on your system and write the contents
-                with open((settings.path_to_save_video + r'\%s' % file_name), "wb") as file:
+                with open((settings.path_to_save_video + r'/%s' % file_name), "wb") as file:
                     file.write(file_download.content)
         elif task['status'] == "SUBMITTED":
             json_check = {
@@ -106,8 +104,8 @@ for item in POOLS_ID:
                 "mustache": task['solutions'][0]['output_values']['mustache'],
                 "glasses": task['solutions'][0]['output_values']['glasses'],
                 "age": task['solutions'][0]['output_values']['age'],
-                "photo": task['solutions'][0]['output_values']['photo'],  # sandbox
-                # "video": task['solutions'][0]['output_values']['video'],
+                # "photo": task['solutions'][0]['output_values']['photo'],  # sandbox
+                "video": task['solutions'][0]['output_values']['video'],  # main
                 "gender": gender,
                 "file_name": file_name,
                 "media_type": info_file["media_type"],
@@ -116,6 +114,7 @@ for item in POOLS_ID:
             }
         )
     if db:
-        pd.DataFrame(db).to_csv(f"pool_{pool_id}.tsv", index=False, sep="\t", encoding='utf-8')
+        pd.DataFrame(db).to_csv(f"{settings.path_to_save_video}/pool_{pool_id}.tsv", index=False, sep="\t",
+                                    encoding='utf-8')
 
 antireplay()

@@ -14,9 +14,8 @@ def antireplay():
                 hash_md5.update(chunk)
         return hash_md5.hexdigest()
 
+    db = pd.read_csv(f"{settings.path_to_save_video}/pool_{settings.pool_id}.tsv", delimiter='\t')
 
-    db = pd.read_csv(f"pool_{settings.pool_id}.tsv", delimiter='\t')
-    # db = pd.read_csv("example.tsv", delimiter='\t', index_col='user_id')
     db = db[db['is_video'] == 1]
 
     # print(db)
@@ -37,8 +36,6 @@ def antireplay():
     db['md5_hash'] = md5_hash
     db = db.sort_values('md5_hash')
 
-    #print(db)
-
     md5_hash = db['md5_hash'].tolist()
     task_id = db['task_id'].tolist()
     file_name = db['file_name'].tolist()
@@ -53,8 +50,6 @@ def antireplay():
         else:
             copy.append("error")
 
-    #print(md5_hash)
-
     for i in range(len(md5_hash)):
         if (i != 1) and (md5_hash[i] == md5_hash[i-1]):
             reject.append(1)
@@ -64,7 +59,7 @@ def antireplay():
             }
             requests.patch(settings.URL_API + "assignments/%s" % task_id[i], headers=settings.HEADERS, json=json_check)
             try:
-                os.remove(local_path[i] + "\\" + file_name[i])
+                os.remove(local_path[i] + "/" + file_name[i])
             except:
                 pass
             continue
@@ -73,5 +68,5 @@ def antireplay():
     db['is_copy'] = copy
     db['rejected'] = reject
 
-    pd.DataFrame(db).to_csv(f"pool_{settings.pool_id}_v2.tsv", index=False, sep="\t", encoding='utf-8')
-    # pd.DataFrame(db).to_csv("example_v2.tsv", index=False, sep="\t", encoding='utf-8')
+    pd.DataFrame(db).to_csv(f"{settings.path_to_save_video}/pool_{settings.pool_id}_v2.tsv", index=False, sep="\t",
+                            encoding='utf-8')
