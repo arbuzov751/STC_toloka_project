@@ -37,8 +37,8 @@ def antireplay():
     db = db.sort_values('md5_hash')
 
     md5_hash = db['md5_hash'].tolist()
-    task_id = db['task_id'].tolist()
-    file_name = db['file_name'].tolist()
+    task_id = db['task_id'].tolist()  # without extention
+    file_name = db['file_name'].tolist()  # with extention
     local_path = db['local_path'].tolist()
 
     for item in md5_hash:

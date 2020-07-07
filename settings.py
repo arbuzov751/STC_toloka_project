@@ -1,6 +1,6 @@
 # This is settings file!
 
-path_to_save_video = r'/media/hdd/arbuzov_data/toloka_june_2020'
+path_to_save_video = r'/media/hdd/arbuzov_data/toloka_july_2020'
 
 # Specify the key to the API, as well as the pool ID of the first and second jobs
 
@@ -25,6 +25,6 @@ types = [".3g2", ".3gp", ".3gp2", ".3gpp", ".3gpp2",
          ".swf", ".ts", ".vcd", ".vid", ".vob", ".webm",
          ".wm", ".wmv", ".yuv"]  # types all popular video files
 
-pool_id = 14331615  # -1 - поиск по всем открытым пулам
+pool_id = 405154  # -1 - поиск по всем открытым пулам
 
 Width, Height = [640, 480]

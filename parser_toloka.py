@@ -18,8 +18,6 @@ def get_media_type(filename):
 
 POOLS_ID = []
 
-all_files = glob.glob(f"{settings.path_to_save_video}/*.*")
-
 if settings.pool_id == -1:
     url_pools = (
             settings.URL_API + "pools?status=OPEN"
@@ -36,6 +34,8 @@ if POOLS_ID:
     if not os.path.exists(settings.path_to_save_video):
         os.makedirs(settings.path_to_save_video)
 
+all_files = glob.glob(f"{settings.path_to_save_video}/**/*.*", recursive=True)
+
 for item in POOLS_ID:
     pool_id = item['id']
 
@@ -51,15 +51,15 @@ for item in POOLS_ID:
 
     for task in tqdm(submitted_tasks):
 
-        try:
-            url_file = (
-                    settings.URL_API + "attachments/%s" % task['solutions'][0]['output_values']['video']  # main
-                #    settings.URL_API + "attachments/%s" % task['solutions'][0]['output_values']['photo']  # sandbox
+        url_file = (
+                #    settings.URL_API + "attachments/%s" % task['solutions'][0]['output_values']['video']  # main
+                    settings.URL_API + "attachments/%s" % task['solutions'][0]['output_values']['photo']  # sandbox
             )
+
+        try:
+            info_file = requests.get(url_file, headers=settings.HEADERS).json()
         except:
             continue
-
-        info_file = requests.get(url_file, headers=settings.HEADERS).json()
 
         file_name = info_file['name']
         extention = Path(file_name)
@@ -104,8 +104,8 @@ for item in POOLS_ID:
                 "mustache": task['solutions'][0]['output_values']['mustache'],
                 "glasses": task['solutions'][0]['output_values']['glasses'],
                 "age": task['solutions'][0]['output_values']['age'],
-                # "photo": task['solutions'][0]['output_values']['photo'],  # sandbox
-                "video": task['solutions'][0]['output_values']['video'],  # main
+                "photo": task['solutions'][0]['output_values']['photo'],  # sandbox
+                # "video": task['solutions'][0]['output_values']['video'],  # main
                 "gender": gender,
                 "file_name": file_name,
                 "media_type": info_file["media_type"],
